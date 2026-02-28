@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>后台菜单三级联动示例</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #fff;
+      --primary: #2f6fed;
+      --text: #1f2d3d;
+      --subtext: #6b7a90;
+      --border: #dfe6f1;
+      --active: #e9f0ff;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .login-wrap {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 16px;
+    }
+
+    .login-card {
+      width: 360px;
+      background: var(--card);
+      border-radius: 12px;
+      padding: 28px;
+      box-shadow: 0 10px 28px rgba(39, 70, 141, 0.12);
+    }
+
+    .login-card h1 {
+      font-size: 20px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .field {
+      margin-bottom: 14px;
+    }
+
+    .field label {
+      display: block;
+      font-size: 13px;
+      color: var(--subtext);
+      margin-bottom: 6px;
+    }
+
+    .field input {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      outline: none;
+    }
+
+    .field input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(47, 111, 237, 0.12);
+    }
+
+    .btn {
+      width: 100%;
+      border: none;
+      border-radius: 8px;
+      padding: 11px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    .layout {
+      height: 100vh;
+      display: grid;
+      grid-template-rows: 64px 1fr;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 18px;
+      background: #1f2d3d;
+      color: #fff;
+    }
+
+    .brand {
+      font-size: 17px;
+      font-weight: 600;
+    }
+
+    .top-level {
+      display: flex;
+      gap: 8px;
+      list-style: none;
+    }
+
+    .top-btn {
+      border: 1px solid transparent;
+      background: transparent;
+      color: #c7d4ea;
+      padding: 8px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: 0.15s;
+    }
+
+    .top-btn.active,
+    .top-btn:hover {
+      color: #fff;
+      border-color: #4d6384;
+      background: rgba(123, 161, 220, 0.2);
+    }
+
+    .body {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      min-height: 0;
+    }
+
+    .sidebar {
+      background: #fff;
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      padding: 16px 12px;
+    }
+
+    .second-group {
+      margin-bottom: 14px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .second-title {
+      width: 100%;
+      border: none;
+      background: #f9fbff;
+      text-align: left;
+      padding: 12px;
+      cursor: pointer;
+      color: #334156;
+      font-weight: 600;
+    }
+
+    .third-list {
+      list-style: none;
+    }
+
+    .third-btn {
+      width: 100%;
+      border: none;
+      background: #fff;
+      text-align: left;
+      padding: 10px 12px 10px 22px;
+      color: #4e5f77;
+      cursor: pointer;
+      border-top: 1px solid #f0f3f8;
+    }
+
+    .third-btn.active,
+    .third-btn:hover {
+      background: var(--active);
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .content {
+      padding: 22px;
+      overflow-y: auto;
+    }
+
+    .panel {
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      padding: 20px;
+      min-height: 220px;
+    }
+
+    .breadcrumb {
+      color: var(--subtext);
+      margin-bottom: 10px;
+      font-size: 13px;
+    }
+
+    .panel h2 {
+      margin-bottom: 8px;
+    }
+
+    .panel p {
+      line-height: 1.7;
+      color: #4e5f77;
+    }
+  </style>
+</head>
+<body>
+  <section class="login-wrap" id="loginView">
+    <div class="login-card">
+      <h1>后台登录</h1>
+      <div class="field">
+        <label for="username">账号</label>
+        <input id="username" type="text" placeholder="请输入账号" value="admin" />
+      </div>
+      <div class="field">
+        <label for="password">密码</label>
+        <input id="password" type="password" placeholder="请输入密码" value="123456" />
+      </div>
+      <button id="loginBtn" class="btn">登录</button>
+    </div>
+  </section>
+
+  <section class="layout hidden" id="appView">
+    <header class="topbar">
+      <div class="brand">管理后台</div>
+      <ul class="top-level" id="topLevel"></ul>
+    </header>
+    <div class="body">
+      <aside class="sidebar" id="sidebar"></aside>
+      <main class="content">
+        <div class="panel">
+          <div class="breadcrumb" id="breadcrumb"></div>
+          <h2 id="contentTitle">欢迎</h2>
+          <p id="contentText">请从左侧三级菜单选择一个功能。</p>
+        </div>
+      </main>
+    </div>
+  </section>
+
+  <script>
+    const menuData = [
+      {
+        name: "运营中心",
+        second: [
+          { name: "订单管理", third: ["订单列表", "退款审核", "物流追踪"] },
+          { name: "营销活动", third: ["优惠券配置", "活动日历", "专题页管理"] }
+        ]
+      },
+      {
+        name: "商品中心",
+        second: [
+          { name: "商品维护", third: ["商品列表", "类目配置", "价格策略"] },
+          { name: "库存管理", third: ["库存看板", "预警设置", "调拨记录"] }
+        ]
+      },
+      {
+        name: "系统设置",
+        second: [
+          { name: "权限管理", third: ["角色配置", "菜单授权", "操作日志"] },
+          { name: "基础配置", third: ["站点信息", "消息通知", "字典维护"] }
+        ]
+      }
+    ];
+
+    const loginView = document.getElementById("loginView");
+    const appView = document.getElementById("appView");
+    const topLevelEl = document.getElementById("topLevel");
+    const sidebarEl = document.getElementById("sidebar");
+    const breadcrumbEl = document.getElementById("breadcrumb");
+    const contentTitleEl = document.getElementById("contentTitle");
+    const contentTextEl = document.getElementById("contentText");
+
+    let activeTopIndex = 0;
+    let activeSecondIndex = 0;
+    let activeThirdIndex = 0;
+
+    document.getElementById("loginBtn").addEventListener("click", () => {
+      loginView.classList.add("hidden");
+      appView.classList.remove("hidden");
+      renderTopLevel();
+      renderSidebar();
+      updateContent();
+    });
+
+    function renderTopLevel() {
+      topLevelEl.innerHTML = "";
+      menuData.forEach((item, index) => {
+        const li = document.createElement("li");
+        const button = document.createElement("button");
+        button.className = `top-btn ${index === activeTopIndex ? "active" : ""}`;
+        button.textContent = item.name;
+        button.addEventListener("click", () => {
+          activeTopIndex = index;
+          activeSecondIndex = 0;
+          activeThirdIndex = 0;
+          renderTopLevel();
+          renderSidebar();
+          updateContent();
+        });
+        li.appendChild(button);
+        topLevelEl.appendChild(li);
+      });
+    }
+
+    function renderSidebar() {
+      sidebarEl.innerHTML = "";
+      const currentTop = menuData[activeTopIndex];
+
+      currentTop.second.forEach((secondItem, secondIndex) => {
+        const group = document.createElement("div");
+        group.className = "second-group";
+
+        const secondBtn = document.createElement("button");
+        secondBtn.className = "second-title";
+        secondBtn.textContent = secondItem.name;
+        secondBtn.addEventListener("click", () => {
+          activeSecondIndex = secondIndex;
+          activeThirdIndex = 0;
+          renderSidebar();
+          updateContent();
+        });
+
+        const thirdList = document.createElement("ul");
+        thirdList.className = "third-list";
+        secondItem.third.forEach((thirdName, thirdIndex) => {
+          const item = document.createElement("li");
+          const thirdBtn = document.createElement("button");
+          const isActive = secondIndex === activeSecondIndex && thirdIndex === activeThirdIndex;
+          thirdBtn.className = `third-btn ${isActive ? "active" : ""}`;
+          thirdBtn.textContent = thirdName;
+          thirdBtn.addEventListener("click", () => {
+            activeSecondIndex = secondIndex;
+            activeThirdIndex = thirdIndex;
+            renderSidebar();
+            updateContent();
+          });
+          item.appendChild(thirdBtn);
+          thirdList.appendChild(item);
+        });
+
+        group.appendChild(secondBtn);
+        group.appendChild(thirdList);
+        sidebarEl.appendChild(group);
+      });
+    }
+
+    function updateContent() {
+      const top = menuData[activeTopIndex];
+      const second = top.second[activeSecondIndex];
+      const third = second.third[activeThirdIndex];
+      breadcrumbEl.textContent = `${top.name} / ${second.name} / ${third}`;
+      contentTitleEl.textContent = third;
+      contentTextEl.textContent = `当前页面为「${third}」，已由顶部一级菜单和左侧二级、三级菜单联动定位。`;
+    }
+  </script>
+</body>
+</html>
